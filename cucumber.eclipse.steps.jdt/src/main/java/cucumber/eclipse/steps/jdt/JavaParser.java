@@ -9,7 +9,10 @@ import java.util.Set;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -25,6 +28,7 @@ import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+
 /**
  * An AST parser to parse Class/imports/Constructor/Methods from a Java File
  * 
@@ -33,6 +37,8 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 public class JavaParser extends AbstractHandler {
 
+	private ILog logger = null;
+	
 	private ASTParser astParser = null;
 	private CompilationUnit compUnit = null;
 	private ASTRequestor astRequestor = null;
@@ -43,7 +49,10 @@ public class JavaParser extends AbstractHandler {
 	// Initialize ASTParser as CompilationUnit
 	@SuppressWarnings("deprecation")
 	public JavaParser(ICompilationUnit iCompilationUnit, IProgressMonitor progressMonitor) {
-
+		ILog log = Activator.getDefault().getLog();
+		
+		long startTime = System.currentTimeMillis();
+		
 		// astParser = ASTParser.newParser(AST.JLS3); //for jdk-7
 		this.astParser = ASTParser.newParser(AST.JLS8); // for jdk-8
 		astParser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -52,8 +61,12 @@ public class JavaParser extends AbstractHandler {
 		// For unused import declarations[TBD]
 		astParser.setCompilerOptions(Collections.singletonMap(JavaCore.COMPILER_PB_UNUSED_IMPORT, JavaCore.ERROR));
 		astParser.setSource(iCompilationUnit);
-		astParser.setResolveBindings(true);
+//		astParser.setResolveBindings(true); // time consuming improvements #273
+		
 		compUnit = (CompilationUnit) astParser.createAST(progressMonitor);
+		long endTime = System.currentTimeMillis();
+		
+		log.log(new Status(IStatus.INFO, Activator.PLUGIN_ID, String.format("JavaParser parse %s in %d ms", iCompilationUnit.getElementName(), endTime - startTime)));
 	}
 
 	/**
@@ -78,7 +91,6 @@ public class JavaParser extends AbstractHandler {
 		this.methodBody = method.getBody().toString();
 		return methodBody;
 	}
-	
 
 	/**
 	 * @param iCompUnit
@@ -98,7 +110,6 @@ public class JavaParser extends AbstractHandler {
 	public int getLineNumber(Statement statement) {
 		return compUnit.getLineNumber(statement.getStartPosition());
 	}
-
 
 	/**
 	 * Method Visitor
