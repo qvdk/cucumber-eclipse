@@ -34,4 +34,4 @@ New release 0.0.23
 
  * Custom parameter types in cucumber expressions are not detected. Thus, the expression `I have a {word} cat` is supported, but `I have a {color} cat` will not. #291 
 
-<img src="/cucumber-eclipse/assets/cucumber_expression_limitation.png" alt="Support cucumber expression limitation" width="680px" />
+<img src="/cucumber-eclipse/assets/cucumber_expression_limitation.png" alt="Support cucumber expression limitation" width="680px" /> 
